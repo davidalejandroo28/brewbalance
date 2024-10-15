@@ -1,9 +1,10 @@
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.textinput import TextInput
 from kivy.uix.popup import Popup
+from kivy.uix.scrollview import ScrollView
+from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 import sqlite3
 from datetime import datetime
@@ -27,6 +28,11 @@ class CaffeineTrackerApp(App):
         self.log_button = Button(text="Log Intake")
         self.log_button.bind(on_press=self.log_caffeine_intake)
         self.main_layout.add_widget(self.log_button)
+
+        # Button to view the caffeine log
+        self.view_log_button = Button(text="View Caffeine Log")
+        self.view_log_button.bind(on_press=self.view_caffeine_log)
+        self.main_layout.add_widget(self.view_log_button)
 
         # Display the total caffeine for the day
         self.result_label = Label(text="Total Caffeine Today: 0 mg")
@@ -90,6 +96,35 @@ class CaffeineTrackerApp(App):
             size_hint=(0.75, 0.5)
         )
         warning_popup.open()
+
+    def view_caffeine_log(self, instance):
+        # Fetch all data from the caffeine_log table
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT amount, timestamp FROM caffeine_log ORDER BY timestamp DESC")
+        log_entries = cursor.fetchall()
+
+        # Create a GridLayout to display the log entries
+        log_layout = GridLayout(cols=1, padding=10, spacing=10, size_hint_y=None)
+        log_layout.bind(minimum_height=log_layout.setter('height'))
+
+        if log_entries:
+            for amount, timestamp in log_entries:
+                log_entry = Label(text=f'{timestamp}: {amount} mg', size_hint_y=None, height=40)
+                log_layout.add_widget(log_entry)
+        else:
+            log_layout.add_widget(Label(text="No caffeine log available", size_hint_y=None, height=40))
+
+        # Create a ScrollView to contain the log layout
+        scroll_view = ScrollView(size_hint=(1, 1))
+        scroll_view.add_widget(log_layout)
+
+        # Create a popup to display the log entries
+        log_popup = Popup(
+            title="Caffeine Log",
+            content=scroll_view,
+            size_hint=(0.8, 0.8)
+        )
+        log_popup.open()
 
     def open_date_picker(self):
         date_dialog = MDDatePicker(callback=self.on_date_selected)
