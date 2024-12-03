@@ -52,6 +52,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   }
   
 }
+
+
+function getTotalLimit($email, $conn) {
+  $username ="";
+  $sql = "SELECT username FROM userdata WHERE email = ?";
+  $stmt = $conn->prepare($sql);
+  $stmt->bind_param("s", $email);
+  $stmt->execute();
+  $stmt->bind_result($username);
+  $stmt->fetch();
+  $stmt->close();
+
+  
+  $limit_caffeine = 0;
+
+  $query = "SELECT limit_caffeine FROM usercaffeinedata WHERE username = ?";
+  $stmt = $conn->prepare($query);
+  $stmt->bind_param("s", $username);
+  $stmt->execute();
+  $stmt->store_result();
+  $stmt->bind_result($limit_caffeine);
+  $stmt->fetch();
+  $stmt->close();
+
+  return $limit_caffeine ? $limit_caffeine : 130;
+}
+
+$limit_caffeine = getTotalLimit($email, $conn);
 ?>
 
 <!DOCTYPE html>
@@ -222,9 +250,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <!-- Sidebar -->
   <div class="sidebar" id="sidebar">
     <span class="close-btn" onclick="toggleMenu()">&times;</span>
-    <a href="profile.html" class="menu-item">Profile</a>
-    <a href="charts.html" class="menu-item">Charts</a>
-    <a href="products.html" class="menu-item">Products</a>
+    <a href="profile.php" class="menu-item">Profile</a>
+    <a href="charts.php" class="menu-item">Charts</a>
+    <a href="products.php" class="menu-item">Products</a>
   </div>
 
   <!-- Top brown bar with dynamic welcome message -->
@@ -257,7 +285,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     // Initialize the total consumed caffeine today
     let totalConsumed = <?php echo $totalConsumedToday; ?>;
-    const goal = 400; // The caffeine goal (in mg)
+    const goal = <?php echo $limit_caffeine; ?>; // The caffeine goal (in mg)
     const percentage = Math.min((totalConsumed / goal) * 100, 100); // Calculate the percentage (max 100%)
 
     // Update the circle based on the total consumed caffeine
@@ -266,46 +294,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // JavaScript logic for handling form submission
     document.getElementById('caffeine-form').addEventListener('submit', function(event) {
-      event.preventDefault(); // Prevent default form submission
+  event.preventDefault(); // Prevent default form submission
 
-      const inputField = document.getElementById("mg_coffee");
-      const consumed = parseInt(inputField.value, 10);
-      const goal = 400;
+  const inputField = document.getElementById("mg_coffee");
+  const consumed = parseInt(inputField.value, 10);
 
-      if (!consumed || consumed <= 0) {
-          alert("Please enter a valid amount of caffeine consumed!");
-          return;
-      }
+  if (!consumed || consumed <= 0) {
+      alert("Please enter a valid amount of caffeine consumed!");
+      return;
+  }
 
-      // Add consumed caffeine to the global total
-      totalConsumed += consumed;
-      const percentage = Math.min((totalConsumed / goal) * 100, 100);
-      const progress = `${percentage}%`;
+  // Add consumed caffeine to the global total
+  totalConsumed += consumed;
+  const percentage = Math.min((totalConsumed / goal) * 100, 100); // Ensure percentage doesn't exceed 100
+  const progress = `${percentage}%`;
 
-      // Update the progress circle
-      document.querySelector(".circle").style.setProperty("--progress", progress);
-      document.getElementById("percentage").textContent = `${Math.round(percentage)}%`;
+  // Update the progress circle
+  const circle = document.querySelector(".circle");
+  circle.style.setProperty("--progress", progress);
+  document.getElementById("percentage").textContent = `${Math.round(percentage)}%`;
 
-      // Update the total consumed display
-      document.getElementById("total-consumed").textContent = `Total Consumed: ${totalConsumed}mg`;
+  // Change circle color to red if percentage is 100% or above
+  if (percentage >= 100) {
+      circle.style.background = `conic-gradient(red ${progress}, #ddd 0%)`;
 
-      // Clear the input field
-      inputField.value = '';
+      // Display warning popup
+      alert("Warning: You have exceeded your caffeine limit!");
+  } else {
+      // Reset to green if under the limit
+      circle.style.background = `conic-gradient(#4caf50 ${progress}, #ddd 0%)`;
+  }
 
-      // Create an AJAX request to submit the form data to the server
-      const formData = new FormData();
-      formData.append('mg_coff', consumed);
+  // Update the total consumed display
+  document.getElementById("total-consumed").textContent = `Total Consumed: ${totalConsumed}mg`;
 
-      fetch('', {
-        method: 'POST',
-        body: formData
-      })
-      .then(response => response.text())
-      .then(data => {
-        console.log(data); // Handle the response from the server (optional)
-      })
-      .catch(error => console.error('Error:', error));
-    });
+  // Clear the input field
+  inputField.value = '';
+
+  // Create an AJAX request to submit the form data to the server
+  const formData = new FormData();
+  formData.append('mg_coff', consumed);
+
+  fetch('', {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.text())
+  .then(data => {
+    console.log(data); // Handle the response from the server (optional)
+  })
+  .catch(error => console.error('Error:', error));
+});
+
   </script>
 </body>
 </html>
