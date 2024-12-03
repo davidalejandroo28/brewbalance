@@ -255,8 +255,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       }
     }
     
-    let totalConsumed = <?php echo $totalConsumedToday; ?>; // Initialize from PHP
-    // Update the tracker function now triggers form submission via AJAX
+    // Initialize the total consumed caffeine today
+    let totalConsumed = <?php echo $totalConsumedToday; ?>;
+    const goal = 400; // The caffeine goal (in mg)
+    const percentage = Math.min((totalConsumed / goal) * 100, 100); // Calculate the percentage (max 100%)
+
+    // Update the circle based on the total consumed caffeine
+    document.querySelector(".circle").style.setProperty("--progress", percentage + "%");
+    document.getElementById("percentage").textContent = Math.round(percentage) + "%";
+
+    // JavaScript logic for handling form submission
     document.getElementById('caffeine-form').addEventListener('submit', function(event) {
       event.preventDefault(); // Prevent default form submission
 
