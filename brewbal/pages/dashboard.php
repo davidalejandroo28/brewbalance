@@ -52,6 +52,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   }
   
 }
+
+$coffeeLimit = 0;
 ?>
 
 <!DOCTYPE html>
@@ -222,9 +224,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <!-- Sidebar -->
   <div class="sidebar" id="sidebar">
     <span class="close-btn" onclick="toggleMenu()">&times;</span>
-    <a href="profile.html" class="menu-item">Profile</a>
-    <a href="charts.html" class="menu-item">Charts</a>
-    <a href="products.html" class="menu-item">Products</a>
+    <a href="profile.php" class="menu-item">Profile</a>
+    <a href="charts.php" class="menu-item">Charts</a>
+    <a href="products.php" class="menu-item">Products</a>
   </div>
 
   <!-- Top brown bar with dynamic welcome message -->
