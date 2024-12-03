@@ -20,9 +20,38 @@ $stmt->bind_result($username);
 $stmt->fetch();
 $stmt->close();
 
+if ($conn->connect_error) {
+  die("Connection failed: " . $conn->connect_error);
+}
+function getTotalCaffeineConsumedToday($email, $conn) {
+  $today = date('Y-m-d');  // Get today's date
+  $totalConsumed = 0;
+  $sql = "SELECT SUM(mg_coff) FROM caffeine_tracker WHERE email = ? AND date = ?";
+  $stmt = $conn->prepare($sql);
+  $stmt->bind_param("ss", $email, $today);
+  $stmt->execute();
+  $stmt->bind_result($totalConsumed);
+  $stmt->fetch();
+  $stmt->close();
 
+  return $totalConsumed ? $totalConsumed : 0; // Return the total, or 0 if no data
+}
 
+$totalConsumedToday = getTotalCaffeineConsumedToday($email, $conn); 
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  if (isset($_POST['mg_coff'])) {
+      $mg_coff = $_POST['mg_coff'];
+      $today = date('Y-m-d');
+
+      // Insert the value into the caffeine_tracker table
+      $stmt = $conn->prepare("INSERT INTO caffeine_tracker (email, mg_coff, date) VALUES (?, ?, ?)");
+      $stmt->bind_param("sis", $email, $mg_coff, $today);
+      $stmt->execute();
+      $stmt->close();
+  }
+  
+}
 ?>
 
 <!DOCTYPE html>
@@ -184,8 +213,7 @@ $stmt->close();
     font-weight: bold;
     margin-bottom: 10px;
     color: #333;
-    }
-  </style>
+    }  </style>
 </head>
 <body>
   <!-- Menu toggle button -->
@@ -206,12 +234,15 @@ $stmt->close();
   </div>
 
   <div class="tracker-container">
-    <div id="total-consumed">Total Consumed: 0mg</div>
+    <div id="total-consumed">Total Consumed: <?php echo $totalConsumedToday; ?> mg</div>
     <div class="circle" style="--progress: 0%;">
       <div class="inner-circle" id="percentage">0%</div>
     </div>
-    <input type="number" id="mg_coffee" placeholder="Caffeine in mg">
-    <button onclick="updateTracker()">Update Tracker</button>
+    
+    <form method="POST" id="caffeine-form">
+      <input type="number" id="mg_coffee" name="mg_coff" placeholder="Caffeine in mg" required>
+      <button type="submit">Update Tracker</button>
+    </form>
   </div>
 
   <script>
@@ -224,9 +255,11 @@ $stmt->close();
       }
     }
     
-    let totalConsumed = 0; // Initialize a global variable to track total caffeine consumed
+    let totalConsumed = <?php echo $totalConsumedToday; ?>; // Initialize from PHP
+    // Update the tracker function now triggers form submission via AJAX
+    document.getElementById('caffeine-form').addEventListener('submit', function(event) {
+      event.preventDefault(); // Prevent default form submission
 
-    function updateTracker() {
       const inputField = document.getElementById("mg_coffee");
       const consumed = parseInt(inputField.value, 10);
       const goal = 400;
@@ -236,23 +269,35 @@ $stmt->close();
           return;
       }
 
-
-      
-      
-      
+      // Add consumed caffeine to the global total
       totalConsumed += consumed;
       const percentage = Math.min((totalConsumed / goal) * 100, 100);
       const progress = `${percentage}%`;
 
+      // Update the progress circle
       document.querySelector(".circle").style.setProperty("--progress", progress);
       document.getElementById("percentage").textContent = `${Math.round(percentage)}%`;
 
       // Update the total consumed display
       document.getElementById("total-consumed").textContent = `Total Consumed: ${totalConsumed}mg`;
 
+      // Clear the input field
       inputField.value = '';
-  }
 
+      // Create an AJAX request to submit the form data to the server
+      const formData = new FormData();
+      formData.append('mg_coff', consumed);
+
+      fetch('', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.text())
+      .then(data => {
+        console.log(data); // Handle the response from the server (optional)
+      })
+      .catch(error => console.error('Error:', error));
+    });
   </script>
 </body>
 </html>
