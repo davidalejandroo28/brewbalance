@@ -39,7 +39,35 @@ function getTotalCaffeineConsumedToday($email, $conn) {
 
 $totalConsumedToday = getTotalCaffeineConsumedToday($email, $conn); 
 
-// Handle search functionality
+
+
+function getTotalLimit($email, $conn) {
+  $username ="";
+  $sql = "SELECT username FROM userdata WHERE email = ?";
+  $stmt = $conn->prepare($sql);
+  $stmt->bind_param("s", $email);
+  $stmt->execute();
+  $stmt->bind_result($username);
+  $stmt->fetch();
+  $stmt->close();
+
+  
+  $limit_caffeine = 0;
+
+  $query = "SELECT limit_caffeine FROM usercaffeinedata WHERE username = ?";
+  $stmt = $conn->prepare($query);
+  $stmt->bind_param("s", $username);
+  $stmt->execute();
+  $stmt->store_result();
+  $stmt->bind_result($limit_caffeine);
+  $stmt->fetch();
+  $stmt->close();
+
+  return $limit_caffeine ? $limit_caffeine : 130;
+}
+
+$limit_caffeine = getTotalLimit($email, $conn);
+
 $results = null; // Initialize search results
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   // Check if this is an AJAX request
@@ -86,12 +114,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       }
   }
 }
-
-
-$coffeeLimit = 0;
-function getTotalLimit($email, $conn) {
-  //
-}
 ?>
 
 <!DOCTYPE html>
@@ -108,8 +130,7 @@ function getTotalLimit($email, $conn) {
   <title>Coffee Tracker</title>
   
   <style>
-    /* Body and layout */
-    body {
+body {
       font-family: Arial, sans-serif;
       margin: 0;
       padding: 0;
@@ -367,7 +388,7 @@ function getTotalLimit($email, $conn) {
     font-weight: bold;
     margin-bottom: 10px;
     color: #2B3031;
-    }  </style>
+    }    </style>
 </head>
 <body>
   <!-- Menu toggle button -->
@@ -384,31 +405,36 @@ function getTotalLimit($email, $conn) {
 
   <!-- Top brown bar with dynamic welcome message -->
   <div class="top-bar">
-  <button class="menu-btn" onclick="toggleMenu()">☰</button>
-  <div class="welcome-text">Welcome, <?php echo htmlspecialchars($username); ?></div>
-    <a href="logout.php" class="logout-btn">Logout</a>
+    Welcome, <?php echo htmlspecialchars($username); ?>
+    <a href="logout.php" class="btn btn-danger" style="margin-left: 20px;">Logout</a>
   </div>
-
   <div class="main-content">
     <div class="tracker-container">
-      <div id="total-consumed" style="color: #2B3031;">Total Consumed: <?php echo $totalConsumedToday; ?> mg</div>
+      <div id="total-consumed">Total Consumed: <?php echo $totalConsumedToday; ?> mg</div>
       <div class="circle" style="--progress: 0%;">
         <div class="inner-circle" id="percentage">0%</div>
       </div>
+      
+      <form method="POST" id="caffeine-form">
+        <input type="number" id="mg_coffee" name="mg_coff" placeholder="Caffeine in mg" required>
+        <button type="submit">Update Tracker</button>
+      </form>
+    </div>
 
-      <!-- Search -->
-      <div class="search-container">
-        <h3>Search for a Drink</h3>
-        <form method="POST">
-          <input type="text" name="search_query" placeholder="Search for a drink..." required>
-          <button type="submit" class="btn btn-secondary">Search</button>
-        </form>
+    <div class="search-container">
+          <h3>Search for a Drink</h3>
+          <form method="POST">
+            <input type="text" name="search_query" placeholder="Search for a drink..." required>
+            <button type="submit" class="btn btn-secondary">Search</button>
+          </form>
       </div>
 
-      <!-- Search Results -->
+
       <?php if ($results && $results->num_rows > 0): ?>
         <div class="results-container">
           <h4>Search Results</h4>
+          <!-- Button to hide results -->
+          <button id="hideResultsBtn" class="btn btn-secondary" onclick="toggleResults()">Hide Results</button>
           <table>
             <thead>
               <tr>
@@ -438,15 +464,10 @@ function getTotalLimit($email, $conn) {
         </div>
       <?php elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['search_query'])): ?>
         <p class="text-center">No results found for "<?php echo htmlspecialchars($_POST['search_query']); ?>"</p>
-      <?php endif; ?>
-
-      <!-- Manual Input -->
-      <form method="POST" id="caffeine-form">
-        <input type="number" id="mg_coffee" name="mg_coff" placeholder="Caffeine in mg" required>
-        <button type="submit">Update Tracker</button>
-      </form>
+      <?php endif; ?>  
     </div>
-  </div>
+
+
 
   <script>
     function toggleMenu() {
@@ -460,7 +481,7 @@ function getTotalLimit($email, $conn) {
     
     // Initialize the total consumed caffeine today
     let totalConsumed = <?php echo $totalConsumedToday; ?>;
-    const goal = 400; // The caffeine goal (in mg)
+    const goal = <?php echo $limit_caffeine; ?>; // The caffeine goal (in mg)
     const percentage = Math.min((totalConsumed / goal) * 100, 100); // Calculate the percentage (max 100%)
 
     // Update the circle based on the total consumed caffeine
@@ -468,85 +489,128 @@ function getTotalLimit($email, $conn) {
     document.getElementById("percentage").textContent = Math.round(percentage) + "%";
 
     // JavaScript logic for handling form submission
-    document.getElementById('caffeine-form').addEventListener('submit', function(event) {
-      event.preventDefault(); // Prevent default form submission
+  document.getElementById('caffeine-form').addEventListener('submit', function(event) {
+    event.preventDefault(); // Prevent default form submission
 
-      const inputField = document.getElementById("mg_coffee");
-      const consumed = parseInt(inputField.value, 10);
-      const goal = 400;
+    const inputField = document.getElementById("mg_coffee");
+    const consumed = parseInt(inputField.value, 10);
 
-      if (!consumed || consumed <= 0) {
-          alert("Please enter a valid amount of caffeine consumed!");
-          return;
-      }
+    if (!consumed || consumed <= 0) {
+      alert("Please enter a valid amount of caffeine consumed!");
+      return;
+    }
 
-      // Add consumed caffeine to the global total
-      totalConsumed += consumed;
-      const percentage = Math.min((totalConsumed / goal) * 100, 100);
-      const progress = `${percentage}%`;
-      updateProgress(totalConsume)
+    // Add consumed caffeine to the global total
+    totalConsumed += consumed;
+    const percentage = Math.min((totalConsumed / goal) * 100, 100); // Ensure percentage doesn't exceed 100
+    const progress = `${percentage}%`;
 
-      // Clear the input field
-      inputField.value = '';
-
-      // Create an AJAX request to submit the form data to the server
-      const formData = new FormData();
-      formData.append('mg_coff', consumed);
-
-      fetch('', {
-        method: 'POST',
-        body: formData
-      })
-      .then(response => response.text())
-      .then(data => {
-        console.log(data); // Handle the response from the server (optional)
-      })
-      .catch(error => console.error('Error:', error));
-    });
-    document.querySelectorAll(".add-to-tracker").forEach((button) => {
-    button.addEventListener("click", function () {
-      const caffeineAmount = parseInt(this.getAttribute("data-caffeine"), 10);
-
-      if (!caffeineAmount || caffeineAmount <= 0) {
-        alert("Invalid caffeine amount!");
-        return;
-      }
-
-      // Add caffeine amount to the global total
-      totalConsumed += caffeineAmount;
-      updateProgress(totalConsumed);
-
-      // Submit data to the server using AJAX
-      fetch("", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: new URLSearchParams({
-          mg_coff: caffeineAmount,
-        }),
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          if (data.status === "success") {
-            console.log("Caffeine added successfully");
-            // Optionally, clear search results
-            document.querySelector(".results-container").innerHTML = "";
-          } else {
-            alert("Failed to add caffeine to tracker.");
-          }
-        })
-        .catch((error) => console.error("Error:", error));
-    });
-  });
-
-  // Function to Update the Progress Bar
-  function updateProgress(total) {
-    const percentage = Math.min((total / goal) * 100, 100);
-    document.querySelector(".circle").style.setProperty("--progress", percentage + "%");
+    // Update the progress circle
+    const circle = document.querySelector(".circle");
+    circle.style.setProperty("--progress", progress);
     document.getElementById("percentage").textContent = `${Math.round(percentage)}%`;
-    document.getElementById("total-consumed").textContent = `Total Consumed: ${total}mg`;
+
+    // Change circle color to red if percentage is 100% or above
+    if (percentage >= 100) {
+        circle.style.background = `conic-gradient(red ${progress}, #ddd 0%)`;
+
+        // Display warning popup
+        alert("Warning: You have exceeded your caffeine limit!");
+    } else {
+        // Reset to green if under the limit
+        circle.style.background = `conic-gradient(#4caf50 ${progress}, #ddd 0%)`;
+    }
+
+  // Update the total consumed display
+  document.getElementById("total-consumed").textContent = `Total Consumed: ${totalConsumed}mg`;
+
+  // Clear the input field
+  inputField.value = '';
+
+  // Create an AJAX request to submit the form data to the server
+  const formData = new FormData();
+  formData.append('mg_coff', consumed);
+
+  fetch('', {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.text())
+  .then(data => {
+    console.log(data); // Handle the response from the server (optional)
+  })
+  .catch(error => console.error('Error:', error));
+});
+
+// Event listener for adding caffeine to the tracker
+document.querySelectorAll('.add-to-tracker').forEach(button => {
+    button.addEventListener('click', function() {
+        const mg_coffee = parseInt(this.getAttribute('data-caffeine'), 10);
+        
+        if (!mg_coffee || mg_coffee <= 0) {
+            alert("Invalid caffeine value!");
+            return;
+        }
+
+        // Add the caffeine to the global total
+        totalConsumed += mg_coffee;
+        const percentage = Math.min((totalConsumed / goal) * 100, 100); // Ensure percentage doesn't exceed 100
+        const progress = `${percentage}%`;
+
+        // Update the progress circle
+        const circle = document.querySelector(".circle");
+        circle.style.setProperty("--progress", progress);
+        document.getElementById("percentage").textContent = `${Math.round(percentage)}%`;
+
+        // Change circle color to red if percentage is 100% or above
+        if (percentage >= 100) {
+            circle.style.background = `conic-gradient(red ${progress}, #ddd 0%)`;
+
+            // Display warning popup
+            alert("Warning: You have exceeded your caffeine limit!");
+        } else {
+            // Reset to green if under the limit
+            circle.style.background = `conic-gradient(#4caf50 ${progress}, #ddd 0%)`;
+        }
+
+        // Update the total consumed display
+        document.getElementById("total-consumed").textContent = `Total Consumed: ${totalConsumed}mg`;
+
+        // Send the updated value to the server via AJAX
+        const formData = new FormData();
+        formData.append('mg_coff', mg_coffee);
+
+        fetch('', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Optionally update the total consumed after server-side processing
+                document.getElementById("total-consumed").textContent = `Total Consumed: ${data.new_total}mg`;
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    });
+});
+
+function toggleResults() {
+    const resultsContainer = document.querySelector('.results-container');
+    const hideResultsBtn = document.getElementById('hideResultsBtn');
+    
+    // Toggle visibility
+    if (resultsContainer.style.display === 'none') {
+      resultsContainer.style.display = 'block';
+      hideResultsBtn.textContent = 'Hide Results'; // Change button text back
+    } else {
+      resultsContainer.style.display = 'none';
+      hideResultsBtn.textContent = 'Show Results'; // Change button text to "Show Results"
+    }
   }
+
+
+
   </script>
 </body>
 </html>
