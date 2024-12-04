@@ -253,7 +253,7 @@ body {
       width: 200px;
       height: 200px;
       border-radius: 50%;
-      background: conic-gradient(#4C3D19 var(--progress), #ddd 0%);
+      background: conic-gradient(#889063 var(--progress), #ddd 0%);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -512,13 +512,16 @@ body {
 
     // Change circle color to red if percentage is 100% or above
     if (percentage >= 100) {
-        circle.style.background = `conic-gradient(red ${progress}, #ddd 0%)`;
+        circle.style.background = `conic-gradient(#843221 ${progress}, #ddd 0%)`;
 
         // Display warning popup
         alert("Warning: You have exceeded your caffeine limit!");
-    } else {
+    } else if (percentage >= 75) {
+        circle.style.background = `conic-gradient(#9a4c21 ${progress}, #ddd 0%)`; // Yellow-Orange for nearing the limit
+        alert("Warning: You are approaching your caffeine limit!");
+    }else {
         // Reset to green if under the limit
-        circle.style.background = `conic-gradient(#4caf50 ${progress}, #ddd 0%)`;
+        circle.style.background = `conic-gradient(#889063 ${progress}, #ddd 0%)`;
     }
 
   // Update the total consumed display
@@ -564,13 +567,16 @@ document.querySelectorAll('.add-to-tracker').forEach(button => {
 
         // Change circle color to red if percentage is 100% or above
         if (percentage >= 100) {
-            circle.style.background = `conic-gradient(red ${progress}, #ddd 0%)`;
+            circle.style.background = `conic-gradient(#843221 ${progress}, #ddd 0%)`;
 
             // Display warning popup
             alert("Warning: You have exceeded your caffeine limit!");
-        } else {
+        } else if (percentage >= 75) {
+            circle.style.background = `conic-gradient(#9a4c21 ${progress}, #ddd 0%)`; // Yellow-Orange for nearing the limit
+            alert("Warning: You are approaching your caffeine limit!");
+        }else {
             // Reset to green if under the limit
-            circle.style.background = `conic-gradient(#4caf50 ${progress}, #ddd 0%)`;
+            circle.style.background = `conic-gradient(#889063 ${progress}, #ddd 0%)`;
         }
 
         // Update the total consumed display
