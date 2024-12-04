@@ -91,15 +91,17 @@ function getTotalLimit($email, $conn) {
       padding: 0;
       display: flex;
       flex-direction: row;
-      height: 100vh;
+      height: auto;
       background-color: #f4f4f9;
       justify-content: center; /* Center horizontally */
       align-items: center; /* Center vertically */
       position: relative;
+      overflow-y: auto;
     }
     .main-content {
-      padding-top: 70px; /* Adjust to match the height of your fixed top bar */
-      text-align: center;
+      padding-top: 100px; /* Leave space for the top bar */
+      width: 90%; /* Adjust content width for better visibility */
+      max-width: 1200px; /* Prevent content from being too wide */
     }
 
     /* Sidebar styles */
