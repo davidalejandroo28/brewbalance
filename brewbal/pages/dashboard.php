@@ -39,9 +39,6 @@ function getTotalCaffeineConsumedToday($email, $conn) {
   $totalConsumed = 0;
   $sql = "SELECT SUM(mg_coff) FROM caffeine_tracker WHERE email = ? AND date = ?";
   $stmt = $conn->prepare($sql);
-  if (!$stmt) {
-    die("Prepare failed: " . $conn->error);
-  }
   $stmt->bind_param("ss", $email, $today);
   $stmt->execute();
   $stmt->bind_result($totalConsumed);
@@ -421,34 +418,6 @@ function getTotalLimit($email, $conn) {
     // Update the circle based on the total consumed caffeine
     document.querySelector(".circle").style.setProperty("--progress", percentage + "%");
     document.getElementById("percentage").textContent = Math.round(percentage) + "%";
-    document.querySelectorAll('.add-to-tracker').forEach(button => {
-      button.addEventListener('click', function () {
-          const caffeineAmount = this.getAttribute('data-mg');
-          fetch('', {
-              method: 'POST',
-              headers: {
-                  'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ mg_coff: caffeineAmount }),
-          })
-          .then(response => response.json())
-          .then(data => {
-              if (data.success) {
-                  // Update the total consumed caffeine
-                  totalConsumed += parseInt(caffeineAmount);
-                  const percentage = Math.min((totalConsumed / goal) * 100, 100);
-                  const progress = `${percentage}%`;
-
-                  document.querySelector(".circle").style.setProperty("--progress", progress);
-                  document.getElementById("percentage").textContent = `${Math.round(percentage)}%`;
-                  document.getElementById("total-consumed").textContent = `Total Consumed: ${totalConsumed}mg`;
-              } else {
-                  alert('Failed to add caffeine to tracker. Try again.');
-              }
-          })
-          .catch(error => console.error('Error:', error));
-      });
-  });
 
     // JavaScript logic for handling form submission
     document.getElementById('caffeine-form').addEventListener('submit', function(event) {
@@ -492,8 +461,6 @@ function getTotalLimit($email, $conn) {
       })
       .catch(error => console.error('Error:', error));
     });
-    
   </script>
-  
 </body>
 </html>

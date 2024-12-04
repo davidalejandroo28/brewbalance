@@ -11,11 +11,6 @@ body {
     align-items: center; /* Center vertically */
     position: relative;
   }
-
-  .main-content {
-    padding-top: 50px; /* Adjust to the height of the top bar */
-    text-align: center;
-  }
   
   /* Sidebar styles */
   .sidebar {
