@@ -6,7 +6,7 @@ body {
     display: flex;
     flex-direction: row;
     height: 100vh;
-    background-color: #f4f4f9;
+    background-color: #817A8C;
     justify-content: center; /* Center horizontally */
     align-items: center; /* Center vertically */
     position: relative;
@@ -19,7 +19,7 @@ body {
     position: fixed;
     top: 0;
     left: -250px; /* Start hidden */
-    background-color: #333;
+    background-color: #96917F;
     color: white;
     padding-top: 60px;
     transition: 0.3s;
@@ -69,7 +69,7 @@ body {
     left: 0;
     width: 100%;
     height: 50px;
-    background-color: #6f4f1f; /* Brown color */
+    background-color: #523B2E; /* Brown color */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -95,7 +95,7 @@ body {
     width: 200px;
     height: 200px;
     border-radius: 50%;
-    background: conic-gradient(#4caf50 var(--progress), #ddd 0%);
+    background: conic-gradient(#523B2E var(--progress), #ddd 0%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -128,7 +128,7 @@ body {
     padding: 10px 20px;
     font-size: 16px;
     color: white;
-    background-color: #4caf50;
+    background-color: #523B2E;
     border: none;
     border-radius: 5px;
     cursor: pointer;
@@ -159,7 +159,7 @@ body {
     width: 70%;
     padding: 10px;
     font-size: 16px;
-    border: 1px solid #ccc;
+    border: 1px solid #DED8C4;
     border-radius: 5px;
   }
   

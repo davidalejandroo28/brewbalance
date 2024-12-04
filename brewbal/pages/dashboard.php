@@ -20,17 +20,6 @@ $stmt->bind_result($username);
 $stmt->fetch();
 $stmt->close();
 
-// Handle search functionality
-$results = null; // Initialize search results
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['search_query'])) {
-  $search_query = '%' . $_POST['search_query'] . '%';
-  $stmt = $conn->prepare("SELECT * FROM caffeine_content WHERE drink LIKE ?");
-  $stmt->bind_param("s", $search_query);
-  $stmt->execute();
-  $results = $stmt->get_result();
-  $stmt->close();
-}
-
 if ($conn->connect_error) {
   die("Connection failed: " . $conn->connect_error);
 }
@@ -50,9 +39,15 @@ function getTotalCaffeineConsumedToday($email, $conn) {
 
 $totalConsumedToday = getTotalCaffeineConsumedToday($email, $conn); 
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' & isset($_POST['mg_coff'])) {
+// Handle search functionality
+$results = null; // Initialize search results
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  // Check if this is an AJAX request
+  $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+
+  // Handle adding caffeine to the tracker
   if (isset($_POST['mg_coff'])) {
-      $mg_coff = $_POST['mg_coff'];
+      $mg_coff = intval($_POST['mg_coff']);
       $today = date('Y-m-d');
 
       // Insert the value into the caffeine_tracker table
@@ -60,9 +55,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' & isset($_POST['mg_coff'])) {
       $stmt->bind_param("sis", $email, $mg_coff, $today);
       $stmt->execute();
       $stmt->close();
+
+      // Respond to AJAX request
+      if ($isAjax) {
+          echo json_encode([
+              'status' => 'success',
+              'new_total' => getTotalCaffeineConsumedToday($email, $conn)
+          ]);
+          exit;
+      }
   }
-  
+
+  // Handle search functionality
+  if (isset($_POST['search_query'])) {
+      $search_query = '%' . $conn->real_escape_string($_POST['search_query']) . '%';
+      $stmt = $conn->prepare("SELECT * FROM caffeine_content WHERE drink LIKE ?");
+      $stmt->bind_param("s", $search_query);
+      $stmt->execute();
+      $results = $stmt->get_result();
+      $stmt->close();
+
+      if ($isAjax) {
+          $drinks = [];
+          while ($row = $results->fetch_assoc()) {
+              $drinks[] = $row;
+          }
+
+          echo json_encode(['status' => 'success', 'results' => $drinks]);
+          exit;
+      }
+  }
 }
+
 
 $coffeeLimit = 0;
 function getTotalLimit($email, $conn) {
@@ -92,7 +116,7 @@ function getTotalLimit($email, $conn) {
       display: flex;
       flex-direction: row;
       height: auto;
-      background-color: #f4f4f9;
+      background-color: #CFBB99;
       justify-content: center; /* Center horizontally */
       align-items: center; /* Center vertically */
       position: relative;
@@ -111,8 +135,8 @@ function getTotalLimit($email, $conn) {
       position: fixed;
       top: 0;
       left: -250px; /* Start hidden */
-      background-color: #333;
-      color: white;
+      background-color: #354024;
+      color: #E5D7C4;
       padding-top: 60px;
       transition: 0.3s;
       z-index: 2000; /* Ensure sidebar is above the navbar */
@@ -122,13 +146,13 @@ function getTotalLimit($email, $conn) {
       padding: 15px 25px;
       text-decoration: none;
       font-size: 18px;
-      color: white;
+      color: #E5D7C4;
       display: block;
       transition: 0.3s;
     }
 
     .sidebar a:hover {
-      background-color: #575757;
+      background-color: #889063;
     }
 
     .sidebar .close-btn {
@@ -136,7 +160,7 @@ function getTotalLimit($email, $conn) {
       top: 20px;
       right: 25px;
       font-size: 36px;
-      color: white;
+      color: #E5D7C4;
       cursor: pointer;
     }
 
@@ -161,14 +185,35 @@ function getTotalLimit($email, $conn) {
       left: 0;
       width: 100%;
       height: 50px;
-      background-color: #6f4f1f; /* Brown color */
+      background-color: #4C3D19; /* Brown color */
       display: flex;
       align-items: center;
       justify-content: center;
-      color: white;
+      padding: 0 20px;
+      color: #E5D7C4;
       font-size: 20px;
       font-weight: bold;
       z-index: 1000; /* Lower than the sidebar */
+      text-align: center;
+    }
+    .top-bar .welcome-text {
+      position: absolute; /* Absolute positioning to center it independently */
+      left: 50%;
+      transform: translateX(-50%); /* Center the text horizontally */
+      color: #E5D7C4;
+      font-weight: bold;
+    }
+    .logout-btn {
+      background-color: #889063;
+      color: #4C3D19;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 5px;
+      margin-left: auto;
+    }
+
+    .logout-btn:hover {
+      background-color: #354024;
     }
 
     /* Tracker and input positioning */
@@ -187,7 +232,7 @@ function getTotalLimit($email, $conn) {
       width: 200px;
       height: 200px;
       border-radius: 50%;
-      background: conic-gradient(#4caf50 var(--progress), #ddd 0%);
+      background: conic-gradient(#4C3D19 var(--progress), #ddd 0%);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -197,7 +242,7 @@ function getTotalLimit($email, $conn) {
       width: 140px;
       height: 140px;
       border-radius: 50%;
-      background: white;
+      background: #E5D7C4;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -231,22 +276,22 @@ function getTotalLimit($email, $conn) {
       margin-top: 10px;
       padding: 10px 20px;
       font-size: 16px;
-      color: white;
-      background-color: #4caf50;
+      color: #E5D7C4;
+      background-color: #354024;
       border: none;
       border-radius: 5px;
       cursor: pointer;
     }
 
     button:hover {
-      background-color: #45a049;
+      background-color: #889063;
     }
     .search-container {
       margin: 20px auto;
       text-align: center;
       width: 80%; /* Center the container and make it responsive */
       padding: 15px;
-      background-color: #f9f9f9; /* Light background for contrast */
+      background-color: #889063; /* Light background for contrast */
       border: 1px solid #ddd;
       border-radius: 8px;
       box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
@@ -262,7 +307,7 @@ function getTotalLimit($email, $conn) {
       width: 70%;
       padding: 10px;
       font-size: 16px;
-      border: 1px solid #ccc;
+      border: 1px solid #E5D7C4;
       border-radius: 5px;
     }
 
@@ -270,15 +315,15 @@ function getTotalLimit($email, $conn) {
       padding: 10px 20px;
       font-size: 16px;
       margin-left: 10px;
-      color: #fff;
-      background-color: #4caf50;
+      color: #E5D7C4;
+      background-color: #354024;
       border: none;
       border-radius: 5px;
       cursor: pointer;
     }
 
     .search-container button:hover {
-      background-color: #45a049;
+      background-color: #889063;
     }
 
     .results-container table {
@@ -295,25 +340,25 @@ function getTotalLimit($email, $conn) {
     }
 
     .results-container th {
-      background-color: #f4f4f9;
+      background-color: #889063;
       font-weight: bold;
     }
 
     .results-container td {
-      background-color: #fff;
+      background-color: #E5d7c4;
     }
 
     .results-container button {
       padding: 8px 16px;
-      color: #fff;
-      background-color: #007bff;
+      color: #e5d7c4;
+      background-color: #354024;
       border: none;
       border-radius: 5px;
       cursor: pointer;
     }
 
     .results-container button:hover {
-      background-color: #0056b3;
+      background-color: #889063;
     }
 
     
@@ -321,7 +366,7 @@ function getTotalLimit($email, $conn) {
     font-size: 20px;
     font-weight: bold;
     margin-bottom: 10px;
-    color: #333;
+    color: #2B3031;
     }  </style>
 </head>
 <body>
@@ -334,17 +379,19 @@ function getTotalLimit($email, $conn) {
     <a href="profile.php" class="menu-item">Profile</a>
     <a href="charts.php" class="menu-item">Charts</a>
     <a href="products.php" class="menu-item">Products</a>
+    <a href="info.php" class="menu-item">Info</a>
   </div>
 
   <!-- Top brown bar with dynamic welcome message -->
   <div class="top-bar">
-    Welcome, <?php echo htmlspecialchars($username); ?>
-    <a href="logout.php" class="btn btn-danger" style="margin-left: 20px;">Logout</a>
+  <button class="menu-btn" onclick="toggleMenu()">☰</button>
+  <div class="welcome-text">Welcome, <?php echo htmlspecialchars($username); ?></div>
+    <a href="logout.php" class="logout-btn">Logout</a>
   </div>
 
   <div class="main-content">
     <div class="tracker-container">
-      <div id="total-consumed">Total Consumed: <?php echo $totalConsumedToday; ?> mg</div>
+      <div id="total-consumed" style="color: #2B3031;">Total Consumed: <?php echo $totalConsumedToday; ?> mg</div>
       <div class="circle" style="--progress: 0%;">
         <div class="inner-circle" id="percentage">0%</div>
       </div>
@@ -380,10 +427,9 @@ function getTotalLimit($email, $conn) {
                   <td><?php echo htmlspecialchars($row['calories']); ?></td>
                   <td><?php echo htmlspecialchars($row['caffeine_mg']); ?></td>
                   <td>
-                    <form method="POST">
-                      <input type="hidden" name="mg_coff" value="<?php echo $row['caffeine_mg']; ?>">
-                      <button type="submit" class="btn btn-success">Add to Tracker</button>
-                    </form>
+                  <button type="button" class="btn btn-success add-to-tracker" data-caffeine="<?php echo $row['caffeine_mg']; ?>">
+                      Add to Tracker
+                  </button>
                   </td>
                 </tr>
               <?php endwhile; ?>
@@ -438,13 +484,7 @@ function getTotalLimit($email, $conn) {
       totalConsumed += consumed;
       const percentage = Math.min((totalConsumed / goal) * 100, 100);
       const progress = `${percentage}%`;
-
-      // Update the progress circle
-      document.querySelector(".circle").style.setProperty("--progress", progress);
-      document.getElementById("percentage").textContent = `${Math.round(percentage)}%`;
-
-      // Update the total consumed display
-      document.getElementById("total-consumed").textContent = `Total Consumed: ${totalConsumed}mg`;
+      updateProgress(totalConsume)
 
       // Clear the input field
       inputField.value = '';
@@ -463,6 +503,50 @@ function getTotalLimit($email, $conn) {
       })
       .catch(error => console.error('Error:', error));
     });
+    document.querySelectorAll(".add-to-tracker").forEach((button) => {
+    button.addEventListener("click", function () {
+      const caffeineAmount = parseInt(this.getAttribute("data-caffeine"), 10);
+
+      if (!caffeineAmount || caffeineAmount <= 0) {
+        alert("Invalid caffeine amount!");
+        return;
+      }
+
+      // Add caffeine amount to the global total
+      totalConsumed += caffeineAmount;
+      updateProgress(totalConsumed);
+
+      // Submit data to the server using AJAX
+      fetch("", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          mg_coff: caffeineAmount,
+        }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.status === "success") {
+            console.log("Caffeine added successfully");
+            // Optionally, clear search results
+            document.querySelector(".results-container").innerHTML = "";
+          } else {
+            alert("Failed to add caffeine to tracker.");
+          }
+        })
+        .catch((error) => console.error("Error:", error));
+    });
+  });
+
+  // Function to Update the Progress Bar
+  function updateProgress(total) {
+    const percentage = Math.min((total / goal) * 100, 100);
+    document.querySelector(".circle").style.setProperty("--progress", percentage + "%");
+    document.getElementById("percentage").textContent = `${Math.round(percentage)}%`;
+    document.getElementById("total-consumed").textContent = `Total Consumed: ${total}mg`;
+  }
   </script>
 </body>
 </html>
