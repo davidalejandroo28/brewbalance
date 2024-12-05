@@ -173,6 +173,7 @@ if ($conn->connect_error) {
     <div class="sidebar" id="sidebar">
     <span class="close-btn" onclick="toggleMenu()">&times;</span>
     <a href="dashboard.php" class="menu-item">Dashboard</a>
+    <a href="profile.php" class="menu-item">Profile</a>
     <a href="info.php" class="menu-item">Info</a>
     <a href="charts.php" class="menu-item">Charts</a>
     </div>
