@@ -439,7 +439,7 @@ body {
     <span class="close-btn" onclick="toggleMenu()">&times;</span>
     <a href="profile.php" class="menu-item">Profile</a>
     <a href="charts.php" class="menu-item">Charts</a>
-    <a href="products.php" class="menu-item">Products</a>
+   
     <a href="info.php" class="menu-item">Info</a>
   </div>
 
