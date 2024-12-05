@@ -523,7 +523,7 @@ body {
     // Initialize the total consumed caffeine today
     let totalConsumed = <?php echo $totalConsumedToday; ?>;
     const goal = <?php echo $limit_caffeine; ?>; // The caffeine goal (in mg)
-    const percentage = Math.min((totalConsumed / goal) * 100, 100); // Calculate the percentage (max 100%)
+    const percentage = Math.min((totalConsumed / goal) * 100); // Calculate the percentage (max 100%)
 
     // Update the circle based on the total consumed caffeine
     document.querySelector(".circle").style.setProperty("--progress", percentage + "%");
@@ -543,7 +543,7 @@ body {
 
     // Add consumed caffeine to the global total
     totalConsumed += consumed;
-    const percentage = Math.min((totalConsumed / goal) * 100, 100); // Ensure percentage doesn't exceed 100
+    const percentage = Math.min((totalConsumed / goal) * 100); // Ensure percentage doesn't exceed 100
     const progress = `${percentage}%`;
 
     // Update the progress circle
@@ -598,7 +598,7 @@ document.querySelectorAll('.add-to-tracker').forEach(button => {
 
         // Add the caffeine to the global total
         totalConsumed += mg_coffee;
-        const percentage = Math.min((totalConsumed / goal) * 100, 100); // Ensure percentage doesn't exceed 100
+        const percentage = Math.min((totalConsumed / goal) * 100); // Ensure percentage doesn't exceed 100
         const progress = `${percentage}%`;
 
         // Update the progress circle
