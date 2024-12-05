@@ -29,7 +29,7 @@ $stmt->close();
 
 // Handle form submission to update the data
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $new_weight = $_POST['weight'];
+    //$new_weight = $_POST['weight'];
     $new_limit_caffeine = $_POST['limit_caffeine'];
 
     if (empty($new_limit_caffeine)) {
@@ -50,6 +50,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
     $updateStmt->close();
 }
+
+$query = "SELECT limit_caffeine FROM usercaffeinedata WHERE username = ?";
+$stmt = $conn->prepare($query);
+$stmt->bind_param("s", $username);
+$stmt->execute();
+$stmt->store_result();
+$stmt->bind_result($limit_caffeine);
+$stmt->fetch();
+$stmt->close();
 ?>
 
 
@@ -180,10 +189,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <input type="text" id="username" name="username" value="<?php echo htmlspecialchars($username); ?>" disabled>
             </div>
 
-            <div class="form-group">
-                <label for="weight">Weight (kg):</label>
-                <input type="number" id="weight" name="weight" value="<?php echo htmlspecialchars($weight); ?>" required>
-            </div>
 
             <div class="form-group">
                 <label for="limit_caffeine">Caffeine Limit (mg):</label>
