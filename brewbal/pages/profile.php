@@ -29,12 +29,8 @@ $stmt->close();
 
 // Handle form submission to update the data
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $new_weight = $_POST['weight'];
-    $new_limit_caffeine = $_POST['limit_caffeine'];
-
-    if (empty($new_limit_caffeine)) {
-        $new_limit_caffeine = $new_weight * 2;
-    }
+    $new_weight = isset($_POST['weight']) ? floatval($_POST['weight']) : $weight; // Default to existing weight
+    $new_limit_caffeine = ($new_weight) * 5.7;
 
     // Update user data in the database
     $updateQuery = "UPDATE usercaffeinedata SET weight = ?, limit_caffeine = ? WHERE username = ?";
@@ -42,11 +38,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $updateStmt->bind_param("dds", $new_weight, $new_limit_caffeine, $username);
 
     if ($updateStmt->execute()) {
+        $weight = $new_weight;
+        $limit_caffeine = $new_limit_caffeine;
         $message = "Profile updated successfully!";
-        $message_class = "success"; // Success message class
+        $message_class = "success";
     } else {
         $message = "Error updating profile: " . $updateStmt->error;
-        $message_class = "error"; // Error message class
+        $message_class = "error";
     }
     $updateStmt->close();
 }
@@ -182,12 +180,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             <div class="form-group">
                 <label for="weight">Weight (kg):</label>
-                <input type="number" id="weight" name="weight" value="<?php echo htmlspecialchars($weight); ?>" required>
+                <input type="number" id="weight" name="weight" value="<?php echo htmlspecialchars($weight); ?>" required oninput="updateCaffeineLimit()">
             </div>
 
             <div class="form-group">
                 <label for="limit_caffeine">Caffeine Limit (mg):</label>
-                <input type="number" id="limit_caffeine" name="limit_caffeine" value="<?php echo htmlspecialchars($limit_caffeine); ?>" required>
+                <input type="number" id="limit_caffeine" name="limit_caffeine" value="<?php echo htmlspecialchars($limit_caffeine); ?>" readonly>
             </div>
 
             <div class="form-group">
@@ -196,6 +194,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </div>
         </form>
     </div>
+    <script>
+    // Function to calculate caffeine limit based on weight
+    function updateCaffeineLimit() {
+        const weightInput = document.getElementById("weight");
+        const caffeineLimitInput = document.getElementById("limit_caffeine");
+
+        // Parse the weight input value
+        const weight = parseFloat(weightInput.value);
+
+        // Calculate caffeine limit only if weight is a valid number
+        if (!isNaN(weight) && weight > 0) {
+            const limitCaffeine = (weight) * 5.7; // Formula to calculate limit
+            caffeineLimitInput.value = Math.round(limitCaffeine); // Update the caffeine limit field
+        } else {
+            caffeineLimitInput.value = ""; // Clear the limit if weight is invalid
+        }
+    }
+
+    // Initialize caffeine limit on page load
+    document.addEventListener("DOMContentLoaded", updateCaffeineLimit);
+</script>
 </body>
 </html>
 

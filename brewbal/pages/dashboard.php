@@ -43,6 +43,7 @@ $totalConsumedToday = getTotalCaffeineConsumedToday($email, $conn);
 
 function getTotalLimit($email, $conn) {
   $username ="";
+  $limit_caffeine = 0;
   $sql = "SELECT username FROM userdata WHERE email = ?";
   $stmt = $conn->prepare($sql);
   $stmt->bind_param("s", $email);
@@ -51,8 +52,6 @@ function getTotalLimit($email, $conn) {
   $stmt->fetch();
   $stmt->close();
 
-  
-  $limit_caffeine = 0;
 
   $query = "SELECT limit_caffeine FROM usercaffeinedata WHERE username = ?";
   $stmt = $conn->prepare($query);
