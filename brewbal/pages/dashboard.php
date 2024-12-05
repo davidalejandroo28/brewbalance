@@ -127,15 +127,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Parkinsans:wght@300..800&family=Poppins:wght@100..900&display=swap" rel="stylesheet">
   <title>Coffee Tracker</title>
   
   <style>
 body {
-      font-family: Arial, sans-serif;
+      font-family: 'Parkinsans', sans-serif;
       margin: 0;
       padding: 0;
       display: flex;
-      flex-direction: row;
+      flex-direction: column;
       height: auto;
       background-color: #CFBB99;
       justify-content: center; /* Center horizontally */
@@ -143,6 +147,36 @@ body {
       position: relative;
       overflow-y: auto;
     }
+    .logo-bottom-left {
+    position: fixed;
+    bottom: 10px; /* Adjust this value for vertical spacing */
+    left: 10px; /* Adjust this value for horizontal spacing */
+    z-index: 100; /* Make sure it appears on top of other elements */
+    }
+
+    .logo-bottom-left img {
+      max-width: 30%; /* Adjust size proportionally based on the screen */
+      height: auto; /* Maintain aspect ratio */
+      opacity: 0.8; /* Optional transparency */
+      transition: opacity 0.3s ease, max-width 0.3s ease;
+    }
+    /* Media Query for smaller screens */
+    @media (max-width: 900px) {
+        .logo-bottom-left img {
+            max-width: 10%; /* Make the logo smaller on smaller screens */
+        }
+    }
+
+    @media (max-width: 480px) {
+        .logo-bottom-left img {
+            max-width: 5%; /* Further adjust size for very small screens */
+        }
+    }
+
+    .logo-bottom-left img:hover {
+        opacity: 1; /* Fully visible on hover */
+    }
+
     .main-content {
       padding-top: 100px; /* Leave space for the top bar */
       width: 90%; /* Adjust content width for better visibility */
@@ -185,20 +219,6 @@ body {
       cursor: pointer;
     }
 
-    /* Menu toggle button styles */
-    .menu-btn {
-      font-size: 30px;
-      background-color: transparent;
-      border: none;
-      color: #333;
-      cursor: pointer;
-      padding: 20px;
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      z-index: 1500; /* Make sure the toggle button is on top */
-    }
-
     /* Top bar styles */
     .top-bar {
       position: fixed;
@@ -209,31 +229,54 @@ body {
       background-color: #4C3D19; /* Brown color */
       display: flex;
       align-items: center;
-      justify-content: center;
+      justify-content: space-between;
       padding: 0 20px;
       color: #E5D7C4;
       font-size: 20px;
       font-weight: bold;
       z-index: 1000; /* Lower than the sidebar */
-      text-align: center;
     }
-    .top-bar .welcome-text {
-      position: absolute; /* Absolute positioning to center it independently */
-      left: 50%;
-      transform: translateX(-50%); /* Center the text horizontally */
-      color: #E5D7C4;
-      font-weight: bold;
-    }
-    .logout-btn {
-      background-color: #889063;
-      color: #4C3D19;
+    
+    /* Menu toggle button styles */
+    .menu-btn {
+      background-color: transparent;
       border: none;
-      padding: 5px 10px;
-      border-radius: 5px;
-      margin-left: auto;
+      color: #E5D7C4;
+      font-size: 24px;
+      cursor: pointer;
+      margin-left: 10px;
+      height: 80%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.3s ease;
+      padding: 0 15px;
+      
     }
 
-    .logout-btn:hover {
+    /* Center Welcome Text */
+    .welcome-text {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        font-weight: bold;
+    }
+    .menu-btn:hover {
+      background-color: rgba(0, 0, 0, 0.2); /* Highlight effect on hover */
+    }
+    
+    .top-bar .logout-btn {
+      position: absolute;
+      right: 40px;
+      background-color: #889063;
+            color: #E5D7C4;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+    }
+
+    .top-bar .logout-btn:hover {
       background-color: #354024;
     }
 
@@ -246,12 +289,12 @@ body {
       justify-content: center;
       width: 100%;
       text-align: center;
-      margin-top: 70px; /* Space for the top bar */
+      margin-top: 5px; /* Space for the top bar */
     }
 
     .circle {
-      width: 200px;
-      height: 200px;
+      width: 300px;
+      height: 300px;
       border-radius: 50%;
       background: conic-gradient(#889063 var(--progress), #ddd 0%);
       display: flex;
@@ -260,8 +303,8 @@ body {
     }
 
     .inner-circle {
-      width: 140px;
-      height: 140px;
+      width: 211px;
+      height: 211px;
       border-radius: 50%;
       background: #E5D7C4;
       display: flex;
@@ -391,9 +434,6 @@ body {
     }    </style>
 </head>
 <body>
-  <!-- Menu toggle button -->
-  <button class="menu-btn" onclick="toggleMenu()">&#9776;</button>
-
   <!-- Sidebar -->
   <div class="sidebar" id="sidebar">
     <span class="close-btn" onclick="toggleMenu()">&times;</span>
@@ -405,8 +445,9 @@ body {
 
   <!-- Top brown bar with dynamic welcome message -->
   <div class="top-bar">
-    Welcome, <?php echo htmlspecialchars($username); ?>
-    <a href="logout.php" class="btn btn-danger" style="margin-left: 20px;">Logout</a>
+  <button class="menu-btn" onclick="toggleMenu()">&#9776;</button>
+  <div class="welcome-text">Welcome, <?php echo htmlspecialchars($username); ?></div>
+    <a href="logout.php" class="logout-btn">Logout</a>
   </div>
   <div class="main-content">
     <div class="tracker-container">
@@ -618,5 +659,9 @@ function toggleResults() {
 
 
   </script>
+  <!-- Logo Section -->
+  <div class="logo-bottom-left">
+        <img src="logo.png" alt="Brew Balance Logo">
+  </div>
 </body>
 </html>

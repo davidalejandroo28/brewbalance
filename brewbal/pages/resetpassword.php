@@ -51,80 +51,114 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <script src=
 "https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <title>Reset Password</title>
+<style>
+        body {
+            background-color: #CFBB99; /* Matching the theme */
+            font-family: 'Parkinsans', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .reset-container {
+            background-color: #E5D7C4; /* Light background for the form */
+            border-radius: 10px;
+            box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;
+            padding: 30px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        .reset-container h5 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #4C3D19; /* Matching title color */
+        }
+        .form-control {
+            border-radius: 5px;
+            border: 1px solid #889063;
+        }
+        .btn-dark {
+            background-color: #889063;
+            border: none;
+            font-weight: bold;
+            color: #E5D7C4;
+            transition: background-color 0.3s ease;
+        }
+        .btn-dark:hover {
+            background-color: #4C3D19;
+        }
+        .text-link {
+            font-weight: bold;
+            color: #4C3D19;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        .text-link:hover {
+            color: #889063;
+        }
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1055;
+        }
+        #email-check {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+    </style>
 </head>
-
 <body>
-    <div class="container p-5 d-flex flex-column align-items-center">
+    <div class="reset-container">
         <?php if ($message): ?>
-            <div class="toast align-items-center text-white border-0" role="alert"
-          aria-live="assertive" aria-atomic="true"
-                style="background-color: <?php echo $toastClass === 'bg-success' ? 
-                '#28a745' : ($toastClass === 'bg-danger' ? '#dc3545' :
-                ($toastClass === 'bg-warning' ? '#ffc107' : '')); ?>">
+            <div class="toast align-items-center text-white border-0" role="alert" aria-live="assertive" aria-atomic="true"
+                style="background-color: <?php echo $toastClass === 'bg-success' ? '#28a745' : ($toastClass === 'bg-danger' ? '#dc3545' : ($toastClass === 'bg-warning' ? '#ffc107' : '')); ?>">
                 <div class="d-flex">
                     <div class="toast-body">
                         <?php echo $message; ?>
                     </div>
-                    <button type="button" class="btn-close 
-                    btn-close-white me-2 m-auto" data-bs-dismiss="toast"
-                        aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
                 </div>
             </div>
         <?php endif; ?>
-        <form action="" method="post" class="form-control mt-5 p-4"
-            style="height:auto; width:380px; box-shadow: rgba(60, 64, 67, 0.3) 
-            0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;">
-            <div class="row">
-                <i class="fa fa-user-circle-o fa-3x mt-1 mb-2" 
-          style="text-align: center; color: green;"></i>
-                <h5 class="text-center p-4" style="font-weight: 700;">
-          Change Your Password</h5>
+        <i class="fa fa-user-circle-o fa-3x mb-3" style="color: #4C3D19;"></i>
+        <h5>Change Your Password</h5>
+        <form action="" method="post" class="mt-4 position-relative">
+            <div class="mb-3 position-relative">
+                <label for="email" class="form-label"><i class="fa fa-envelope"></i> Email</label>
+                <input type="text" name="email" id="email" class="form-control" required>
+                <span id="email-check"></span>
             </div>
-            <div class="col-mb-3 position-relative">
-                <label for="email"><i class="fa fa-envelope"></i> Email</label>
-                <input type="text" name="email" id="email" 
-                  class="form-control" required>
-                <span id="email-check" class="position-absolute"
-                    style="right: 10px; top: 50%; transform: translateY(-50%);"></span>
+            <div class="mb-3">
+                <label for="password" class="form-label"><i class="fa fa-lock"></i> Password</label>
+                <input type="password" name="password" id="password" class="form-control" required>
             </div>
-            <div class="col mb-3 mt-3">
-                <label for="password"><i class="fa fa-lock"></i> 
-                  Password</label>
-                <input type="text" name="password"
-                  id="password" class="form-control" required>
+            <div class="mb-3">
+                <label for="confirm_password" class="form-label"><i class="fa fa-lock"></i> Confirm Password</label>
+                <input type="password" name="confirm_password" id="confirm_password" class="form-control" required>
             </div>
-            <div class="col mb-3 mt-3">
-                <label for="confirm_password"><i 
-                  class="fa fa-lock"></i> Confirm Password</label>
-                <input type="text" name="confirm_password" 
-                  id="confirm_password"
-                  class="form-control" required>
-            </div>
-            <div class="col mb-3 mt-3">
-                <button type="submit" class="btn bg-dark" 
-                  style="font-weight: 600; color:white;">
-                  Reset Password</button>
-            </div>
-            <div class="col mb-2 mt-4">
-                <p class="text-center" style="font-weight: 600;
-                color: navy;"><a href="./register.php"
-                        style="text-decoration: none;">
-                  Create Account</a> OR <a href="./login.php"
-                        style="text-decoration: none;">Login</a></p>
-            </div>
+            <button type="submit" class="btn btn-dark w-100">Reset Password</button>
+            <p class="mt-4">
+                <a href="./register.php" class="text-link">Create Account</a> OR 
+                <a href="./login.php" class="text-link">Login</a>
+            </p>
         </form>
     </div>
     <script>
         $(document).ready(function () {
             $('#email').on('blur', function () {
-                var email = $(this).val();
+                const email = $(this).val();
                 if (email) {
                     $.ajax({
                         url: 'check_email.php',
                         type: 'POST',
                         data: { email: email },
                         success: function (response) {
-                            if (response == 'exists') {
+                            if (response === 'exists') {
                                 $('#email-check').html('<i class="fa fa-check text-success"></i>');
                             } else {
                                 $('#email-check').html('<i class="fa fa-times text-danger"></i>');
@@ -136,8 +170,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 }
             });
 
-            let toastElList = [].slice.call(document.querySelectorAll('.toast'))
-            let toastList = toastElList.map(function (toastEl) {
+            const toastElList = [].slice.call(document.querySelectorAll('.toast'));
+            const toastList = toastElList.map(function (toastEl) {
                 return new bootstrap.Toast(toastEl, { delay: 3000 });
             });
             toastList.forEach(toast => toast.show());
