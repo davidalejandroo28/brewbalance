@@ -228,7 +228,6 @@ $chartData = getCaffeineDataForLast7Days($email, $conn);
      <div class="sidebar" id="sidebar">
         <span class="close-btn" onclick="toggleSidebar()">&times;</span>
         <a href="dashboard.php">Dashboard</a>
-        <a href="profile.php" class="menu-item">Profile</a>
         <a href="charts.php">Charts</a>
         <a href="info.php">Info</a>
     </div>
