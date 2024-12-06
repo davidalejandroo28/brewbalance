@@ -1,1 +1,2 @@
-.Sh Brew Balance
+Brew Balance.
+
