@@ -1,1 +1,1 @@
-Coffee Tracker
+.Sh Brew Balance
